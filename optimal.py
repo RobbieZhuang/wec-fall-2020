@@ -79,18 +79,17 @@ def max_path(state, a, b):
             return getdp(row, col)[0]
         if b[0] == row and b[1] == col:
             return state.tiles[row][col]
-        v = max_path_helper(row + verticalmove, col)
-        h = max_path_helper(row, col + sidemove)
+        v = max_path_helper(row + verticalmove, col) if verticalmove != 0 else -1
+        h = max_path_helper(row, col + sidemove) if sidemove != 0 else -1
         if v >= h:
             dp[row - rowoff][col - coloff] = (v + state.tiles[row][col], [row + verticalmove, col])
         else:
             dp[row - rowoff][col - coloff] = (h + state.tiles[row][col], [row, col + sidemove])
         return getdp(row, col)[0]
 
-    verticalmove = 1 if b[0] > a[0] else -1
-    sidemove = 1 if b[1] > a[1] else -1
+    verticalmove = 1 if b[0] > a[0] else -1 if b[0] < a[0] else 0
+    sidemove = 1 if b[1] > a[1] else -1 if b[1] < a[1] else 0
     dp = [[(-1, []) for _ in range(abs(b[1] - a[1]) + 1)] for _ in range(abs(b[0] - a[0]) + 1)]
-    print(dp)
     coloff = min(b[1], a[1])
     rowoff = min(b[0], a[0])
     max_path_helper(a[0], a[1])
