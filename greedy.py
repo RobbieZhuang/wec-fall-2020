@@ -3,38 +3,40 @@ from copy import deepcopy
 from time import sleep
 
 def greedy_trip(i, gs):
-    while True:
+    started = False
+    while not started or gs.dist_from_base(i) != 0:
+        started = True
         # first try to clean tiles
-        for i, robot in enumerate(gs.robots):
-            if gs.in_board(i) and gs.tiles[robot.position] > 0:
-                gs.clean_tile(i, gs.tiles[robot.position])
+        if gs.in_board(i) and gs.tiles[robot.position] > 0:
+            gs.clean_tile(i, gs.tiles[robot.position])
 
         possible_moves = []
 
-        for i, robot in enumerate(gs.robots):
-            for d in directions:
-                g = deepcopy(gs)
-                if not g.move_robot(i, d):
-                    continue
+        for d in directions:
+            g = deepcopy(gs)
+            if not g.move_robot(i, d):
+                continue
 
-                print('Tried move:')
-                g.print_state()
+            print('Tried move:')
+            g.print_state()
 
-                sleep(1)
+            sleep(1)
 
-                # only consider moves that are in range of base and which will allow us to clean more stuff
-                # or are moving back towards base
-                if g.valid_position(i) and \
-                   g.in_range_of_base(i) and \
-                   (robot.fluid > 0 or g.dist_from_base(i) < gs.dist_from_base(i)):
+            robot = g.robots[i]
 
-                    priority = 0
-                    if (robot.fluid == 0 or gs.contamination == 0) and g.dist_from_base(i) < gs.dist_from_base(i):
-                        priority = 1000     # prioritize getting empty robots back to base
-                    else:
-                        priority = min(robot.fluid, g.tiles[g.robots[i].position])
+            # only consider moves that are in range of base and which will allow us to clean more stuff
+            # or are moving back towards base
+            if g.valid_position(i) and \
+               g.in_range_of_base(i) and \
+               (robot.fluid > 0 or g.dist_from_base(i) < gs.dist_from_base(i)):
 
-                    possible_moves.append((priority, g))
+                priority = 0
+                if (robot.fluid == 0 or gs.contamination == 0) and g.dist_from_base(i) < gs.dist_from_base(i):
+                    priority = 1000     # prioritize getting empty robots back to base
+                else:
+                    priority = min(robot.fluid, g.tiles[g.robots[i].position])
+
+                possible_moves.append((priority, g))
 
         if not possible_moves:
             break

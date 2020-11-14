@@ -42,6 +42,7 @@ class GameState:
         for r in self.robots:
             if r.position not in self.base_stations:
                 stranded += 1
+        return stranded
 
     def get_score(self, count_stranding=False):
         N_t = self.tiles.size
@@ -88,6 +89,12 @@ class GameState:
 
         self.actions.append([self.robots[i].name, 'move', self.robots[i].position])
         return True
+
+    def move_robot_pos(self, i, p):
+        d = (p[0] - self.robots[i].position[0], p[1] - self.robots[i].position[1])
+        if abs(d[0]) + abs(d[1]) > 1:
+            return False
+        return move_robot(self, i, d)
 
     def clean_tile(self, i, amount):
         amount = min(amount, self.robots[i].fluid)
