@@ -6,6 +6,8 @@ def greedy_trip(i, gs):
     started = False
     while not started or gs.dist_from_base(i) != 0:
         started = True
+
+        robot = gs.robots[i]
         # first try to clean tiles
         if gs.in_board(i) and gs.tiles[robot.position] > 0:
             gs.clean_tile(i, gs.tiles[robot.position])
@@ -18,8 +20,6 @@ def greedy_trip(i, gs):
                 continue
 
             robot = g.robots[i]
-            print('Possible move:')
-            g.print_state()
 
             # only consider moves that are in range of base and which will allow us to clean more stuff
             # or are moving back towards base
@@ -37,13 +37,11 @@ def greedy_trip(i, gs):
 
         if not possible_moves:
             break
-        possible_moves.sort(key=lambda a: -a[0])
-        print(possible_moves)
+        possible_moves.sort(key=lambda a: a[0], reverse=True)
 
         # overwrite game state with best move
         gs = possible_moves[0][1]
 
-        print('New state:')
-        gs.print_state()
+    gs.resupply(i)
 
     return gs
