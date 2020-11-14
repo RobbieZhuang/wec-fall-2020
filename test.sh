@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
-python robots.py WEC2020/test_cases/case$1.txt solutions/case$1.out
-python WEC2020/mark_solution.py -p WEC2020/test_cases/case$1.txt -s solutions/case$1.out
+python robots.py WEC2020/test_cases/case$2.txt -s $1 -o solutions/case$2.out
+python WEC2020/mark_solution.py -p WEC2020/test_cases/case$2.txt -s solutions/case$2.out
