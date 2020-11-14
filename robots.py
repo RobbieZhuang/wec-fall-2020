@@ -33,12 +33,19 @@ class GameState:
                 for i, bs in enumerate(base_stations)
         ]
 
-    def get_score(self):
+    def get_score(self, count_stranding=False):
         N_t = self.tiles.size
-        return (20 * N_t - 0.5 * self.contamination - 2 * self.fuel_spent - 15 * len(self.robots)) / (20 * N_t)
+        if not count_stranding:
+            return (20 * N_t - 0.5 * self.contamination - 2 * self.fuel_spent - 15 * len(self.robots)) / (20 * N_t)
+        else:
+            stranded = 0
+            for r in self.robots:
+                if r.position not in self.base_stations:
+                    stranded += 1
+            return (20 * N_t - 0.5 * self.contamination - 2 * self.fuel_spent - 15 * len(self.robots) - 50 * stranded) / (20 * N_t)
 
     def valid_position(self, i):
-        return self.in_board(i) or self.robots[i].position in base_stations
+        return self.in_board(i) or self.robots[i].position in self.base_stations
 
     def dist_from_base(self, i):
         return sum([abs(self.robots[i].position[j] - self.base_stations[i][j]) for j in range(2)])
