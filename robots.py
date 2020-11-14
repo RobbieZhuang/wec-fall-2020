@@ -175,6 +175,7 @@ def find_optimal_robots(fluid, fuel, tiles, trip_strategy=[greedy_trip, optimal_
 
     for i in range(min_robots, max_robots + 1):
         score, json = generate_solution(fluid, fuel, tiles, n_robots=i, trip_strategy=trip_strategy)
+        print(f'{score}')
         if score > max_score:
             max_score = score
             max_json = json
