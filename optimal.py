@@ -45,20 +45,28 @@ def run_actions_for_robot(i, gamestate):
         score, path = max_path(gamestate, start_point, next_point)
 
         for point in path:
+            gamestate.clean_tile(i, gamestate.get_contam(point))
             gamestate.move_robot_pos(i, point)
 
         start_point = next_point
-        next_point = find_good_endpoint(gamestate, station, start_point, robot.fuel)
+        next_point = find_good_endpoint(gamestate, station, start_point, robot.fuel, robot.fluid)
     
-    # Go back from last point to entry point (from station)
-    score, path = max_path(start_point, entry_point)
+    # Go back from last point to entry point (from station)    
+    print('lmao')
+    print(start_point)
+    print(entry_point)
+    score, path = max_path(gamestate, start_point, entry_point)
 
     for point in path:
+        gamestate.clean_tile(i, gamestate.get_contam(point))
         gamestate.move_robot_pos(i, point)
     # Move robot back to station
     gamestate.move_robot_pos(i, station)
 
 def max_path(state, a, b):
+    if eq_pt(a,b):
+        return (0, [])
+
     def getdp(row, col):
         return dp[row - rowoff][col - coloff]
 
@@ -79,7 +87,7 @@ def max_path(state, a, b):
 
     verticalmove = 1 if b[0] > a[0] else -1
     sidemove = 1 if b[1] > a[1] else -1
-    dp = [[(-1, []) for _ in range(abs(b[1] - a[1] + 1))] for _ in range(abs(b[0] - a[0] + 1))]
+    dp = [[(-1, []) for _ in range(abs(b[1] - a[1]) + 1)] for _ in range(abs(b[0] - a[0]) + 1)]
     print(dp)
     coloff = min(b[1], a[1])
     rowoff = min(b[0], a[0])
@@ -87,8 +95,9 @@ def max_path(state, a, b):
 
     point = a
     path = []
-    while point != b:
-        path.append(getdp(point[0], point[1])[1])
+    while not eq_pt(point ,b):
+        dpp = getdp(point[0], point[1])
+        path.append(dpp[1])
         point = path[-1]
 
     return (getdp(a[0], a[1]), path)

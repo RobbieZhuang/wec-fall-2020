@@ -94,7 +94,7 @@ class GameState:
         d = (p[0] - self.robots[i].position[0], p[1] - self.robots[i].position[1])
         if abs(d[0]) + abs(d[1]) > 1:
             return False
-        return move_robot(self, i, d)
+        return self.move_robot(i, d)
 
     def clean_tile(self, i, amount):
         amount = min(amount, self.robots[i].fluid)
@@ -152,8 +152,7 @@ def generate_solution(fluid, fuel, tiles, n_robots=5):
     print('Generated base stations:')
     g.print_state()
 
-    # g = one_at_a_time_strat(greedy_trip, g)
-    optimal.run_actions_for_robot(0, g)
+    g = one_at_a_time_strat(greedy_trip, g)
 
     return g.get_score(), g.get_json()
 

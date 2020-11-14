@@ -1,1 +1,1 @@
-{"robots": [["Robot0", [-1, 0]]], "actions": [["Robot0", "move", [0, 0]], ["Robot0", "clean", 32.0], ["Robot0", "move", [0, 1]], ["Robot0", "clean", 15.0], ["Robot0", "move", [0, 0]], ["Robot0", "clean", 0.0], ["Robot0", "move", [-1, 0]]]}
+{"robots": [["Robot0", [-1, 0]]], "actions": [["Robot0", "move", [0, 0]], ["Robot0", "clean", 32.0], ["Robot0", "move", [1, 0]], ["Robot0", "clean", 0.0], ["Robot0", "move", [0, 0]], ["Robot0", "move", [-1, 0]]]}
