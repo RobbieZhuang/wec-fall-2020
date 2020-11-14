@@ -26,7 +26,13 @@ def execute_greedy(gs):
 
                     possible_moves.append((priority, g))
 
-        possible_moves.sort()
+        if not possible_moves:
+            break
+        possible_moves.sort(key=lambda a: a[0])
 
         # overwrite game state with best move
         gs = possible_moves[0][1]
+
+        gs.print_state()
+
+    return gs

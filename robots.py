@@ -5,6 +5,7 @@ from copy import deepcopy
 
 from WEC2020.src.problem import load_problem
 from util import equal_space_base_stations
+from greedy_strat import execute_greedy
 
 class RobotState:
     def __init__(self, name, fluid, fuel, position):
@@ -35,6 +36,9 @@ class GameState:
     def get_score(self):
         N_t = self.tiles.size
         return (20 * N_t - 0.5 * self.contamination - 2 * self.fuel_spent - 15 * len(self.robots)) / (20 * N_t)
+
+    def valid_position(self, i):
+        return self.in_board(i) or self.robots[i].position in base_stations
 
     def dist_from_base(self, i):
         return sum([abs(self.robots[i].position[j] - self.base_stations[i][j]) for j in range(2)])
@@ -92,17 +96,16 @@ class GameState:
                 robot = False
                 for i, rob in enumerate(self.robots):
                     if rob.position == (r, c):
-                        print(f'R{i}')
+                        print(f'R{i}', end='')
                         robot = True
                         break
-                if robot:
-                    break
-                if r >= 0 and r < self.rows and c >= 0 and c < self.cols:
-                    print('%02d' % self.tiles[r][c], end='')
-                elif (r,c) in self.base_stations:
-                    print('bb', end='')
-                else:
-                    print('  ', end='')
+                if not robot:
+                    if r >= 0 and r < self.rows and c >= 0 and c < self.cols:
+                        print('%02d' % self.tiles[r][c], end='')
+                    elif (r,c) in self.base_stations:
+                        print('bb', end='')
+                    else:
+                        print('  ', end='')
                 print(' ', end='')
             print()
 
@@ -120,13 +123,15 @@ def generate_solution(fluid, fuel, tiles, n_robots=5):
     print('Generated base stations:')
     g.print_state()
 
+    g = execute_greedy(g)
+
     return g.get_score(), g.get_json()
 
-def find_optimal_robots(fluid, fuel, tiles):
+def find_optimal_robots(fluid, fuel, tiles, min_robots=1, max_robots=20):
     max_score = -1
     max_json = '{}'
 
-    for i in range(1, 20):
+    for i in range(min_robots, max_robots + 1):
         score, json = generate_solution(fluid, fuel, tiles, i)
         if score > max_score:
             max_score = score
@@ -134,13 +139,10 @@ def find_optimal_robots(fluid, fuel, tiles):
 
     return max_score, max_json
 
-def cleaning_path(start, end, tiles):
-    pass
-
 if __name__=='__main__':
     problem = load_problem(sys.argv[1])
 
-    score, json = find_optimal_robots(problem.max_fluid, problem.max_fuel, problem.floor)
+    score, json = find_optimal_robots(problem.max_fluid, problem.max_fuel, problem.floor, 1, 1)
 
     print(f'Found a solution with score: {score}')
 
