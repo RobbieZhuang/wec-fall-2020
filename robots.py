@@ -7,6 +7,7 @@ from WEC2020.src.problem import load_problem
 from util import equal_space_base_stations
 from oaat import one_at_a_time_strat
 from greedy import greedy_trip
+from optimal import optimal_trip
 
 import optimal
 
@@ -157,7 +158,8 @@ def generate_solution(fluid, fuel, tiles, n_robots=5):
     print('Generated base stations:')
     g.print_state()
 
-    g = one_at_a_time_strat(greedy_trip, g)
+    #g = one_at_a_time_strat(greedy_trip, g)
+    g = one_at_a_time_strat(optimal_trip, g)
 
     return g.get_score(), g.get_json()
 

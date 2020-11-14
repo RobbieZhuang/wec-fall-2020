@@ -31,7 +31,7 @@ def find_good_endpoint(state, station, start_point, fuel, fluid):
         return None
     return best_point
 
-def run_actions_for_robot(i, gamestate):
+def optimal_trip(i, gamestate):
     robot = gamestate.robots[i]
     station = robot.position
 
@@ -62,6 +62,8 @@ def run_actions_for_robot(i, gamestate):
         gamestate.move_robot_pos(i, point)
     # Move robot back to station
     gamestate.move_robot_pos(i, station)
+
+    return gamestate
 
 def max_path(state, a, b):
     if eq_pt(a,b):
