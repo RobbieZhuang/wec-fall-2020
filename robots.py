@@ -190,7 +190,7 @@ if __name__=='__main__':
             help='which strategy to use for trip routing')
     parser.add_argument('-m', '--min-robots', metavar='N', type=int, default=1,
             help='minimum number of robots to consider using')
-    parser.add_argument('-M', '--max-robots', metavar='N', type=int, default=20,
+    parser.add_argument('-M', '--max-robots', metavar='N', type=int, default=10,
             help='maximum number of robots to consider using')
 
     args = parser.parse_args()

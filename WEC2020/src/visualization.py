@@ -99,7 +99,7 @@ def visualize_everything_video(prob, soln, output_dir, filename = 'cleaning_visu
         size = (width,height)
         img_array.append(img)
 
-    out = cv2.VideoWriter(f'{filename}.mp4', 0x7634706d, fps, size)
+    out = cv2.VideoWriter(f'{filename}.mp4', -1, float(fps), size)
     
     for i in range(len(img_array)):
         out.write(img_array[i])
