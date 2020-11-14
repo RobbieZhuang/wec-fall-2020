@@ -8,18 +8,22 @@ def optimal_for_station(state, coords):
         for col in range(len(tiles[row])):
             if abs(row - coords[0]) + abs(col - coords[1]) > state.max_fuel / 2:
                 continue
-            
-def find_good_endpoint(state, start_point, max_dist):
-    int best_point = start_point
-    int score = 0
 
-    for i in range(-max_dist, max_dist):
-        for j in range(-max_dist, max_dist):
+# Returns none if there is no "good" next point
+def find_good_endpoint(state, station, start_point, fuel, fluid):
+    best_point = start_point
+    score = 0
+
+    for i in range(-fuel, fuel):
+        for j in range(-fuel, fuel):
             new_point = [start_point[0]-i, start_point[1]-j]
+
             dist = abs(i) + abs(j)
-            if state.in_board(new_point) and dist > 0 and dist <= max_dist:
-                weight = contamination/dist
-                if weight > score:
+            dist_new_to_station = abs(new_point[0] - station[0]) + abs(new_point[1] - station[1])
+            
+            if state.in_board_coord(new_point[0], new_point[1]) and dist > 0 and dist + dist_new_to_station <= fuel:
+                weight = min(state.get_contam(new_point), fluid) / (dist*8)
+                if weight > score and weight > 1:
                     score = weight
                     best_point = new_point
 
@@ -27,13 +31,39 @@ def find_good_endpoint(state, start_point, max_dist):
         return None
     return best_point
 
+def run_actions_for_robot(i, gamestate):
+    robot = gamestate.robots[i]
+    station = robot.position
+
+    gamestate.move_robot(i, gamestate.base_station_start_dirs[i])
+    entry_point = robot.position
+
+    start_point = robot.position
+    next_point = find_good_endpoint(gamestate, station, robot.position, robot.fuel, robot.fluid)
+
+    while next_point is not None:
+        score, path = max_path(gamestate, start_point, next_point)
+
+        for point in path:
+            gamestate.move_robot_pos(i, point)
+
+        start_point = next_point
+        next_point = find_good_endpoint(gamestate, station, start_point, robot.fuel)
+    
+    # Go back from last point to entry point (from station)
+    score, path = max_path(start_point, entry_point)
+
+    for point in path:
+        gamestate.move_robot_pos(i, point)
+    # Move robot back to station
+    gamestate.move_robot_pos(i, station)
 
 def max_path(state, a, b):
     def getdp(row, col):
         return dp[row - rowoff][col - coloff]
 
     def max_path_helper(row, col):
-        if not state.in_board(row, col):
+        if not state.in_board_coord(row, col):
             return 0
         if getdp(row, col)[0] != -1:
             return getdp(row, col)[0]

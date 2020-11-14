@@ -8,6 +8,8 @@ from util import equal_space_base_stations
 from oaat import one_at_a_time_strat
 from greedy import greedy_trip
 
+import optimal
+
 class RobotState:
     def __init__(self, name, fluid, fuel, position):
         self.name = name
@@ -133,6 +135,9 @@ class GameState:
                 print(' ', end='')
             print()
 
+    def get_contam(self, coord):
+        return self.tiles[coord[0]][coord[1]]
+
 def generate_solution(fluid, fuel, tiles, n_robots=5):
     rows, cols = tiles.shape
     base_stations = equal_space_base_stations(tiles, n_robots)
@@ -147,7 +152,8 @@ def generate_solution(fluid, fuel, tiles, n_robots=5):
     print('Generated base stations:')
     g.print_state()
 
-    g = one_at_a_time_strat(greedy_trip, g)
+    # g = one_at_a_time_strat(greedy_trip, g)
+    optimal.run_actions_for_robot(0, g)
 
     return g.get_score(), g.get_json()
 
