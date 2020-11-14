@@ -13,9 +13,6 @@ def optimal_for_station(state, coords):
                 continue
 
 def find_good_endpoint(state, station, start_point, fuel):
-    if eq_pt(start_point, station):
-        return None
-
     int best_point = start_point
     int score = 0
 
@@ -35,13 +32,18 @@ def find_good_endpoint(state, station, start_point, fuel):
     return best_point
 
 
-def get_score_actions_for_robot(i, gamestate):
+def run_actions_for_robot(i, gamestate):
     robot = gamestate.robot[i]
-    # Move robot initial
+    gamestate.move_robot(i, gamestate.base_station_start_dirs)
+
     start_point = robot.position
     next_point = find_good_endpoint(gamestate, robot.position, robot.fuel)
+    if next_point is None:
+        return None
+
     while next_point is not None:
         actions = max_path()
+
 
 
         start_point = next_point
