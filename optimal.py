@@ -1,5 +1,3 @@
-import GameState
-
 def eq_pt(p1, p2):
     return p1[0] == p2[0] and p1[1] == p2[1]
 
@@ -29,29 +27,39 @@ def find_good_endpoint(state, start_point, max_dist):
         return None
     return best_point
 
+
 def max_path(state, a, b):
+    def getdp(row, col):
+        return dp[row - rowoff][col - coloff]
+
     def max_path_helper(row, col):
-        if not state.in_board([row, col]):
+        if not state.in_board(row, col):
             return 0
-        if dp[row][col][0] != -1:
-            return dp[row][col][0]
+        if getdp(row, col)[0] != -1:
+            return getdp(row, col)[0]
         if b[0] == row and b[1] == col:
-            return (state.tiles[row][col], [])
+            return state.tiles[row][col]
         v = max_path_helper(row + verticalmove, col)
         h = max_path_helper(row, col + sidemove)
-        dp[row][col][0] = max(v, h) + state.tiles[row][col]
-        dp[row][col][1] = [row + verticalmove, col] if v >= h else [row, col + sidemove]
-        return dp[row][col]
+        if v >= h:
+            dp[row - rowoff][col - coloff] = (v + state.tiles[row][col], [row + verticalmove, col])
+        else:
+            dp[row - rowoff][col - coloff] = (h + state.tiles[row][col], [row, col + sidemove])
+        return getdp(row, col)[0]
 
     verticalmove = 1 if b[0] > a[0] else -1
     sidemove = 1 if b[1] > a[1] else -1
-    dp = [[(-1, []) for _ in range(abs(b[1] - a[1]))] for _ in range(abs(b[0] - a[0]))]
+    dp = [[(-1, []) for _ in range(abs(b[1] - a[1] + 1))] for _ in range(abs(b[0] - a[0] + 1))]
+    print(dp)
+    coloff = min(b[1], a[1])
+    rowoff = min(b[0], a[0])
     max_path_helper(a[0], a[1])
 
     point = a
     path = []
     while point != b:
-        path.append(dp[point[0]][point[1]][1])
+        path.append(getdp(point[0], point[1])[1])
         point = path[-1]
 
-    return (dp[a[0]][a[1]], path)
+    return (getdp(a[0], a[1]), path)
+

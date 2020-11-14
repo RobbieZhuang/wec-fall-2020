@@ -59,6 +59,9 @@ class GameState:
 
     def in_board(self, i):
         r, c = self.robots[i].position
+        return self.in_board(r, c)
+
+    def in_board(self, r, c):
         return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
     def move_robot(self, i, d):
