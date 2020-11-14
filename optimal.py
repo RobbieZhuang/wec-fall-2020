@@ -33,15 +33,22 @@ def max_path(state, a, b):
     def max_path_helper(row, col):
         if not state.in_board([row, col]):
             return 0
-        if dp[row][col] != -1:
-            return dp[row][col]
+        if dp[row][col][0] != -1:
+            return dp[row][col][0]
         v = max_path_helper(row + verticalmove, col)
         h = max_path_helper(row, col + sidemove)
-        dp[row][col] = max(v, h) + state.tiles[row][col]
+        dp[row][col][0] = max(v, h) + state.tiles[row][col]
+        dp[row][col][1] = [row + verticalmove, col] if v >= h else [row, col + sidemove]
         return dp[row][col]
 
     verticalmove = 1 if b[0] > a[0] else -1
     sidemove = 1 if b[1] > a[1] else -1
-    dp = [[-1 for _ in range(abs(b[1] - a[1]))] for _ in range(abs(b[0] - a[0]))]
+    dp = [[(-1, []) for _ in range(abs(b[1] - a[1]))] for _ in range(abs(b[0] - a[0]))]
     max_path_helper(a[0], a[1])
-    return dp[a[0]][a[1]]
+
+    path = []
+    while a != b:
+        path.append(dp[a[0]][a[1]][1])
+        a = path[-1]
+        
+    return (dp[a[0]][a[1]], path)
