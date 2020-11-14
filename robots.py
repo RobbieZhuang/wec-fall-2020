@@ -187,7 +187,7 @@ if __name__=='__main__':
             help='text document containing the problem test case')
     parser.add_argument('-o', '--output', metavar='SOLUTION', type=str,
             help='the file to write the solution to (default: stdout)')
-    parser.add_argument('-s', '--strategy', metavar='STRAT', type=str, choices=['greedy', 'optimal'],
+    parser.add_argument('-s', '--strategy', metavar='STRAT', type=str, choices=['greedy', 'optimal', 'both'], default='both',
             help='which strategy to use for trip routing')
     parser.add_argument('-m', '--min-robots', metavar='N', type=int, default=1,
             help='minimum number of robots to consider using')

@@ -8,7 +8,7 @@ from optimal import optimal_trip
 
 cases = sorted(glob('WEC2020/test_cases/case*.txt'))
 
-strat = optimal_trip
+strat = [optimal_trip]
 
 total_score = 0
 for c in cases:
