@@ -1,6 +1,7 @@
 import sys
 import json
 import numpy as np
+from copy import deepcopy
 
 from WEC2020.src.problem import load_problem
 
@@ -21,7 +22,7 @@ class GameState:
         self.max_fluid = fluid
         self.max_fuel = fuel
 
-        self.base_stations = []
+        self.base_stations = base_stations
         self.actions = []
         self.tiles = tiles
 
@@ -29,19 +30,23 @@ class GameState:
         self.fuel_spent = 0
 
         self.robots = [
-            RobotState('Robot' + i, self.max_fluid, self.max_fuel, bs)
+            RobotState(f'Robot{i}', self.max_fluid, self.max_fuel, bs)
                 for i, bs in enumerate(base_stations)
         ]
 
     def get_score(self):
-        self.tiles.size
-        return (20 * 
+        N_t = self.tiles.size
+        return (20 * N_t - 0.5 * self.contamination - 2 * self.fuel_spent - 15 * len(self.robots)) / (20 * N_t)
 
     def move_robot(self, i, d):
         r, c = self.robots[i].position
         self.robots[i].position = (r + d[0], c + d[1])
         self.robots[i].fuel -= 1
         self.fuel_spent += 1
+
+        if self.robots[i].position in self.base_stations:
+            self.robots[i].fluid = self.max_fluid
+            self.robots[i].fuel = self.max_fuel
 
         self.actions.append([self.robots[i].name, 'move', self.robots[i].position])
 
@@ -50,16 +55,17 @@ class GameState:
         new = max(0, old - amount)
         self.tiles[self.robots[i]] = new
 
-        self.actions.append([self.robots[i].name, 'clean', new])
+        self.actions.append([self.robots[i].name, 'clean', new - old])
 
 def generate_solution(fluid, fuel, tiles, n_robots):
-    g = GameState()
+    base_stations = equal_space_base_stations(tiles, n_robots)
 
-    output['robots'] = equal_space_base_stations(tiles, n_robots)
+    g = GameState()
 
     return json.dumps({})
 
 def cleaning_path(start, end, tiles):
+    pass
 
 def equal_space_base_stations(tiles, n):
     total_len = border_len(tiles)
