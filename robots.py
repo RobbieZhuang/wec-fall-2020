@@ -4,7 +4,6 @@ import numpy as np
 from copy import deepcopy
 
 from WEC2020.src.problem import load_problem
-from util import equal_space_base_stations
 
 UP = (-1, 0)
 DOWN = (1, 0)
@@ -58,64 +57,53 @@ class GameState:
 
         self.actions.append([self.robots[i].name, 'clean', new - old])
 
-    def get_json(self):
-        return json.dumps({
-            'robots': [[
-                robot.name, self.base_stations[i]
-            ] for i, robot in enumerate(self.robots)],
-            'actions': self.actions
-        })
+    def on_board(self, tile):
+        return tile[0] >= 0 and tile[1] >= 0 and \
+               tile[0] < len(self.contamination) and tile[1] < len(self.contamination[0])
 
-def generate_solution(fluid, fuel, tiles, n_robots=5):
-    rows, cols = tiles.shape
+def find_score_for
+
+def generate_solution(fluid, fuel, tiles, n_robots):
     base_stations = equal_space_base_stations(tiles, n_robots)
 
-    # remove duplicates
-    base_stations = list(set(base_stations))
-    if len(base_stations) < n_robots:
-        return -100, '{}'       # we are oversaturated
+    g = GameState()
 
-    print('Generated base stations:')
-    for r in range(-1, rows + 1):
-        for c in range(-1, cols + 1):
-            if r >= 0 and r < rows and c >= 0 and c < cols:
-                print('%02d' % tiles[r][c], end='')
-            elif (r,c) in base_stations:
-                print('bb', end='')
-            else:
-                print('  ', end='')
-            print(' ', end='')
-        print()
-
-    g = GameState(fluid, fuel, tiles, base_stations)
-
-    return g.get_score(), g.get_json()
-
-def find_optimal_robots(fluid, fuel, tiles):
-    max_score = -1
-    max_json = '{}'
-
-    for i in range(1, 20):
-        score, json = generate_solution(fluid, fuel, tiles, i)
-        if score > max_score:
-            max_score = score
-            max_json = json
-
-    return max_score, max_json
+    return json.dumps({})
 
 def cleaning_path(start, end, tiles):
     pass
 
+def equal_space_base_stations(tiles, n):
+    total_len = border_len(tiles)
+
+    placed = 0
+
+    for i, pos in enumerate(border_gen(tiles)):
+        if i / total_len >= placed / n:
+            placed += 1
+
+def border_len(tiles):
+    rows, cols = tiles.shape
+    return rows * 2 + cols * 2
+
+def border_gen(tiles):
+    rows, cols = tiles.shape
+    for i in range(cols):
+        yield (-1, i)
+    for i in range(rows):
+        yield (i, cols)
+    for i in range(cols):
+        yield (rows, cols - i - 1)
+    for i in range(rows):
+        yield (rows - i - 1, -1)
+
 if __name__=='__main__':
     problem = load_problem(sys.argv[1])
 
-    score, json = find_optimal_robots(problem.max_fluid, problem.max_fuel, problem.floor)
-
-    print(f'Found a solution with score: {score}')
+    json = generate_solution(problem.max_fluid, problem.max_fuel, problem.floor)
 
     if len(sys.argv) > 2:
         with open(sys.argv[2], 'w') as ofile:
             ofile.write(json)
-            ofile.write('\n')
     else:
         print(json)
