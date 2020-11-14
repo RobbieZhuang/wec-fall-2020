@@ -2,7 +2,7 @@ from util import *
 from copy import deepcopy
 from time import sleep
 
-def execute_greedy(gs):
+def greedy_trip(i, gs):
     while True:
         # first try to clean tiles
         for i, robot in enumerate(gs.robots):

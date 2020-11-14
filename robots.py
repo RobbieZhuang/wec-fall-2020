@@ -5,7 +5,8 @@ from copy import deepcopy
 
 from WEC2020.src.problem import load_problem
 from util import equal_space_base_stations
-from greedy_strat import execute_greedy
+from oaat import one_at_a_time_strat
+from greedy import greedy_trip
 
 class RobotState:
     def __init__(self, name, fluid, fuel, position):
@@ -19,7 +20,8 @@ class GameState:
         self.max_fluid = fluid
         self.max_fuel = fuel
 
-        self.base_stations = base_stations
+        self.base_stations = [bs[0] for bs in base_stations]
+        self.base_station_start_dirs = [bs[1] for bs in base_stations]
         self.actions = []
         self.tiles = tiles
 
@@ -30,19 +32,21 @@ class GameState:
 
         self.robots = [
             RobotState(f'Robot{i}', self.max_fluid, self.max_fuel, bs)
-                for i, bs in enumerate(base_stations)
+                for i, bs in enumerate(self.base_stations)
         ]
+
+    def get_stranded(self):
+        stranded = 0
+        for r in self.robots:
+            if r.position not in self.base_stations:
+                stranded += 1
 
     def get_score(self, count_stranding=False):
         N_t = self.tiles.size
         if not count_stranding:
             return (20 * N_t - 0.5 * self.contamination - 2 * self.fuel_spent - 15 * len(self.robots)) / (20 * N_t)
         else:
-            stranded = 0
-            for r in self.robots:
-                if r.position not in self.base_stations:
-                    stranded += 1
-            return (20 * N_t - 0.5 * self.contamination - 2 * self.fuel_spent - 15 * len(self.robots) - 50 * stranded) / (20 * N_t)
+            return (20 * N_t - 0.5 * self.contamination - 2 * self.fuel_spent - 15 * len(self.robots) - 50 * self.get_stranded()) / (20 * N_t)
 
     def valid_position(self, i):
         return self.in_board(i) or self.robots[i].position in self.base_stations
@@ -58,6 +62,9 @@ class GameState:
         return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
     def move_robot(self, i, d):
+        if self.robots[i].fuel <= 0:
+            return False
+
         r, c = self.robots[i].position
         new_pos = (r + d[0], c + d[1])
 
@@ -130,7 +137,7 @@ def generate_solution(fluid, fuel, tiles, n_robots=5):
     print('Generated base stations:')
     g.print_state()
 
-    g = execute_greedy(g)
+    g = one_at_a_time_strat(greedy_trip, g)
 
     return g.get_score(), g.get_json()
 
