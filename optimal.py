@@ -75,11 +75,14 @@ def max_path(state, a, b):
         return (0, [])
 
     def getdp(row, col):
-        return dp[row - rowoff][col - coloff]
+        return dp[row - rowmin][col - colmin]
+
+    def in_range(r, c):
+        return r >= rowmin and r <= rowmax and c >= colmin and c <= colmax
 
     def max_path_helper(row, col):
-        if not state.in_board_coord(row, col):
-            return 0
+        if not in_range(row, col):
+            return -1
         if getdp(row, col)[0] != -1:
             return getdp(row, col)[0]
         if b[0] == row and b[1] == col:
@@ -87,16 +90,18 @@ def max_path(state, a, b):
         v = max_path_helper(row + verticalmove, col) if verticalmove != 0 else -1
         h = max_path_helper(row, col + sidemove) if sidemove != 0 else -1
         if v >= h:
-            dp[row - rowoff][col - coloff] = (v + state.tiles[row][col], [row + verticalmove, col])
+            dp[row - rowmin][col - colmin] = (v + state.tiles[row][col], [row + verticalmove, col])
         else:
-            dp[row - rowoff][col - coloff] = (h + state.tiles[row][col], [row, col + sidemove])
+            dp[row - rowmin][col - colmin] = (h + state.tiles[row][col], [row, col + sidemove])
         return getdp(row, col)[0]
 
     verticalmove = 1 if b[0] > a[0] else -1 if b[0] < a[0] else 0
     sidemove = 1 if b[1] > a[1] else -1 if b[1] < a[1] else 0
     dp = [[(-1, []) for _ in range(abs(b[1] - a[1]) + 1)] for _ in range(abs(b[0] - a[0]) + 1)]
-    coloff = min(b[1], a[1])
-    rowoff = min(b[0], a[0])
+    colmin = min(b[1], a[1])
+    rowmin = min(b[0], a[0])
+    colmax = max(b[1], a[1])
+    rowmax = max(b[0], a[0])
     max_path_helper(a[0], a[1])
 
     point = a
@@ -105,6 +110,7 @@ def max_path(state, a, b):
         dpp = getdp(point[0], point[1])
         path.append(dpp[1])
         point = path[-1]
+    
 
     return (getdp(a[0], a[1]), path)
 
