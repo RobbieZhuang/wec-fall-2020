@@ -13,14 +13,16 @@ def optimal_for_station(state, coords):
             
 def find_good_endpoint(state, start_point, max_dist):
     int best_point = start_point
-    int contamination = 0
+    int score = 0
 
     for i in range(-max_dist, max_dist):
         for j in range(-max_dist, max_dist):
             new_point = [start_point[0]-i, start_point[1]-j]
-            if state.in_board(new_point) and abs(i) + abs(j) <= max_dist:
-                if state.get_contam(new_point) > contamination:
-                    contamination = state.get_contam(new_point)
+            dist = abs(i) + abs(j)
+            if state.in_board(new_point) and dist > 0 and dist <= max_dist:
+                weight = contamination/dist
+                if weight > score:
+                    score = weight
                     best_point = new_point
 
     if eq_pt(best_point, start_point):
