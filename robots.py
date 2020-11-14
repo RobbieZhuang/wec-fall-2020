@@ -6,11 +6,6 @@ from copy import deepcopy
 from WEC2020.src.problem import load_problem
 from util import equal_space_base_stations
 
-UP = (-1, 0)
-DOWN = (1, 0)
-LEFT = (0, -1)
-RIGHT = (0, 1)
-
 class RobotState:
     def __init__(self, name, fluid, fuel, position):
         self.name = name
@@ -27,6 +22,8 @@ class GameState:
         self.actions = []
         self.tiles = tiles
 
+        self.rows, self.cols = tiles.shape
+
         self.contamination = np.sum(tiles)
         self.fuel_spent = 0
 
@@ -39,9 +36,26 @@ class GameState:
         N_t = self.tiles.size
         return (20 * N_t - 0.5 * self.contamination - 2 * self.fuel_spent - 15 * len(self.robots)) / (20 * N_t)
 
+    def dist_from_base(self, i):
+        return sum([abs(self.robots[i].position[j] - self.base_stations[i][j]) for j in range(2)])
+    
+    def in_range_of_base(self, i):
+        return self.dist_from_base(i) <= self.robots[i].fuel
+
+    def in_board(self, i):
+        r, c = self.robots[i].position
+        return r >= 0 and r < self.rows and c >= 0 and c < self.cols
+
     def move_robot(self, i, d):
         r, c = self.robots[i].position
-        self.robots[i].position = (r + d[0], c + d[1])
+        new_pos = (r + d[0], c + d[1])
+
+        # avoid collision
+        for j, r in enumerate(self.robots):
+            if i != j and r.position == new_pos:
+                return False
+
+        self.robots[i].position = new_pos
         self.robots[i].fuel -= 1
         self.fuel_spent += 1
 
@@ -50,11 +64,17 @@ class GameState:
             self.robots[i].fuel = self.max_fuel
 
         self.actions.append([self.robots[i].name, 'move', self.robots[i].position])
+        return True
 
     def clean_tile(self, i, amount):
-        old = self.tiles[self.robots[i]]
+        amount = min(amount, self.robots[i].fluid)
+
+        old = self.tiles[self.robots[i].position]
         new = max(0, old - amount)
-        self.tiles[self.robots[i]] = new
+        self.tiles[self.robots[i].position] = new
+        self.robots[i].fluid -= (new - old)
+
+        self.contamination -= (new - old)
 
         self.actions.append([self.robots[i].name, 'clean', new - old])
 
@@ -66,6 +86,26 @@ class GameState:
             'actions': self.actions
         })
 
+    def print_state(self):
+        for r in range(-1, self.rows + 1):
+            for c in range(-1, self.cols + 1):
+                robot = False
+                for i, rob in enumerate(self.robots):
+                    if rob.position == (r, c):
+                        print(f'R{i}')
+                        robot = True
+                        break
+                if robot:
+                    break
+                if r >= 0 and r < self.rows and c >= 0 and c < self.cols:
+                    print('%02d' % self.tiles[r][c], end='')
+                elif (r,c) in self.base_stations:
+                    print('bb', end='')
+                else:
+                    print('  ', end='')
+                print(' ', end='')
+            print()
+
 def generate_solution(fluid, fuel, tiles, n_robots=5):
     rows, cols = tiles.shape
     base_stations = equal_space_base_stations(tiles, n_robots)
@@ -75,19 +115,10 @@ def generate_solution(fluid, fuel, tiles, n_robots=5):
     if len(base_stations) < n_robots:
         return -100, '{}'       # we are oversaturated
 
-    print('Generated base stations:')
-    for r in range(-1, rows + 1):
-        for c in range(-1, cols + 1):
-            if r >= 0 and r < rows and c >= 0 and c < cols:
-                print('%02d' % tiles[r][c], end='')
-            elif (r,c) in base_stations:
-                print('bb', end='')
-            else:
-                print('  ', end='')
-            print(' ', end='')
-        print()
-
     g = GameState(fluid, fuel, tiles, base_stations)
+
+    print('Generated base stations:')
+    g.print_state()
 
     return g.get_score(), g.get_json()
 
