@@ -3,6 +3,10 @@ import os
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
+import cv2
+import numpy as np
+import glob
+
 from .simulator import Simulator
 
 
@@ -71,3 +75,35 @@ def visualize_everything(prob, soln, output_dir):
         plt.close(fig)
 
     print('All images generated!')
+
+
+def visualize_everything_video(prob, soln, output_dir, filename = 'cleaning_visualization', fps = 10):
+    sim = Simulator(prob, soln.robots)
+
+    fig = visualize_single_frame(sim)
+    fig.savefig(os.path.join(output_dir, '0.png'))
+    plt.close(fig)
+
+    img_array = []
+    size = None
+
+    for i, action in enumerate(soln.actions):
+        print(f'Generating image for frame {i + 1}...')
+        sim.apply(action)
+        fig = visualize_single_frame(sim)
+        fig.savefig(os.path.join(output_dir, f'{i + 1}.png'))
+        plt.close(fig)
+
+        img = cv2.imread(f'{output_dir}/{i}.png')
+        height, width, layers = img.shape
+        size = (width,height)
+        img_array.append(img)
+
+    out = cv2.VideoWriter(f'{filename}.avi',cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
+    
+    for i in range(len(img_array)):
+        out.write(img_array[i])
+    out.release()
+
+    print('All images generated')
+    print('Video generated')

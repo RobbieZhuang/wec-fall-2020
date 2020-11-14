@@ -1,4 +1,5 @@
-import sys
+#!/bin/python3
+
 import json
 import numpy as np
 from copy import deepcopy
@@ -9,7 +10,12 @@ from oaat import one_at_a_time_strat
 from greedy import greedy_trip
 from optimal import optimal_trip
 
-import optimal
+import argparse
+
+strategies = {
+    'greedy': greedy_trip,
+    'optimal': optimal_trip
+}
 
 class RobotState:
     def __init__(self, name, fluid, fuel, position):
@@ -147,7 +153,7 @@ class GameState:
     def get_contam(self, coord):
         return self.tiles[coord[0]][coord[1]]
 
-def generate_solution(fluid, fuel, tiles, n_robots=5):
+def generate_solution(fluid, fuel, tiles, n_robots=5, trip_strategy=greedy_trip):
     rows, cols = tiles.shape
     base_stations = equal_space_base_stations(tiles, n_robots)
 
@@ -158,21 +164,16 @@ def generate_solution(fluid, fuel, tiles, n_robots=5):
 
     g = GameState(fluid, fuel, tiles, base_stations)
 
-    print('Generated base stations:')
-    g.print_state()
-
-    #g = one_at_a_time_strat(greedy_trip, g)
-    g = one_at_a_time_strat(optimal_trip, g)
+    g = one_at_a_time_strat(trip_strategy, g)
 
     return g.get_score(), g.get_json()
 
-def find_optimal_robots(fluid, fuel, tiles, min_robots=1, max_robots=20):
+def find_optimal_robots(fluid, fuel, tiles, trip_strategy=greedy_trip, min_robots=1, max_robots=20):
     max_score = -1
     max_json = '{}'
 
     for i in range(min_robots, max_robots + 1):
-        score, json = generate_solution(fluid, fuel, tiles, i)
-        #print(f'Found {i} robot solution with score {score}')
+        score, json = generate_solution(fluid, fuel, tiles, n_robots=i, trip_strategy=trip_strategy)
         if score > max_score:
             max_score = score
             max_json = json
@@ -180,14 +181,32 @@ def find_optimal_robots(fluid, fuel, tiles, min_robots=1, max_robots=20):
     return max_score, max_json
 
 if __name__=='__main__':
-    problem = load_problem(sys.argv[1])
+    parser = argparse.ArgumentParser(description='Generates a solution for cleaning robot planning')
+    parser.add_argument('infile', metavar='PROBLEM', type=str,
+            help='text document containing the problem test case')
+    parser.add_argument('-o', '--output', metavar='SOLUTION', type=str,
+            help='the file to write the solution to (default: stdout)')
+    parser.add_argument('-s', '--strategy', metavar='STRAT', type=str, choices=['greedy', 'optimal'],
+            help='which strategy to use for trip routing')
+    parser.add_argument('-m', '--min-robots', metavar='N', type=int, default=1,
+            help='minimum number of robots to consider using')
+    parser.add_argument('-M', '--max-robots', metavar='N', type=int, default=20,
+            help='maximum number of robots to consider using')
 
-    score, json = find_optimal_robots(problem.max_fluid, problem.max_fuel, problem.floor, 1, 20)
+    args = parser.parse_args()
 
-    #print(f'Found a solution with score: {score}')
+    problem = load_problem(args.infile)
 
-    if len(sys.argv) > 2:
-        with open(sys.argv[2], 'w') as ofile:
+    score, json = find_optimal_robots(
+            problem.max_fluid,
+            problem.max_fuel,
+            problem.floor,
+            trip_strategy=strategies[args.strategy],
+            min_robots=args.min_robots,
+            max_robots=args.max_robots)
+
+    if args.output:
+        with open(args.output, 'w') as ofile:
             ofile.write(json)
             ofile.write('\n')
     else:
