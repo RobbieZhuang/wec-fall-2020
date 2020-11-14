@@ -89,11 +89,14 @@ class GameState:
 
     def move_robot_pos(self, i, p):
         d = (p[0] - self.robots[i].position[0], p[1] - self.robots[i].position[1])
-        if abs(d[0]) + abs(d[1]) > 1:
+        if abs(d[0]) + abs(d[1]) > 1 or abs(d[0]) + abs(d[1]) == 0:
             return False
         return self.move_robot(i, d)
 
     def clean_tile(self, i, amount):
+        if self.tiles[self.robots[i].position] == 0:
+            return
+
         old = self.tiles[self.robots[i].position]
         amount = min(min(amount, self.robots[i].fluid), old)
 

@@ -28,7 +28,10 @@ def find_good_endpoint(state, station, start_point, fuel, fluid):
                     best_point = new_point
 
     if eq_pt(best_point, start_point):
+        print("no good point")
         return None
+
+    print (best_point)
     return best_point
 
 def optimal_trip(i, gamestate):
@@ -47,14 +50,15 @@ def optimal_trip(i, gamestate):
         for point in path:
             gamestate.clean_tile(i, gamestate.get_contam(point))
             gamestate.move_robot_pos(i, point)
+            gamestate.clean_tile(i, gamestate.get_contam(point))
 
         start_point = next_point
         next_point = find_good_endpoint(gamestate, station, start_point, robot.fuel, robot.fluid)
     
     # Go back from last point to entry point (from station)    
-    print('lmao')
-    print(start_point)
-    print(entry_point)
+    # print('lmao')
+    # print(start_point)
+    # print(entry_point)
     score, path = max_path(gamestate, start_point, entry_point)
 
     for point in path:
@@ -62,6 +66,7 @@ def optimal_trip(i, gamestate):
         gamestate.move_robot_pos(i, point)
     # Move robot back to station
     gamestate.move_robot_pos(i, station)
+    gamestate.resupply(i)
 
     return gamestate
 
