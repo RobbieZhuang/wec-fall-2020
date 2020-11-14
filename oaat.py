@@ -14,8 +14,10 @@ def one_at_a_time_strat(trip_strat, game_state):
             if new_game_state.get_stranded() > 0:
                 print('Warning: robots stranded after trip completed')
             
+            old_best_score = best_game_state.get_score(count_stranding=True)
+            new_best_score = best_game_state.get_score(count_stranding=True)
             if new_game_state.get_score(count_stranding=True) > \
-                    best_game_state.get_score(count_stranding=True):
+                    :
                 best_game_state = new_game_state
 
         if best_game_state == game_state:
