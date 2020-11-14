@@ -27,10 +27,10 @@ def border_length(tiles):
 def border_positions(tiles):
     rows, cols = tiles.shape
     for i in range(cols):
-        yield (-1, i)
+        yield ((-1, i), DOWN)
     for i in range(rows):
-        yield (i, cols)
+        yield ((i, cols), LEFT)
     for i in range(cols):
-        yield (rows, cols - i - 1)
+        yield ((rows, cols - i - 1), UP)
     for i in range(rows):
-        yield (rows - i - 1, -1)
+        yield ((rows - i - 1, -1), RIGHT)
