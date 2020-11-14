@@ -28,8 +28,10 @@ def find_good_endpoint(state, station, start_point, fuel, fluid):
                     best_point = new_point
 
     if eq_pt(best_point, start_point):
+        # print("no good point")
         return None
 
+    # print (best_point)
     return best_point
 
 def optimal_trip(i, gamestate):

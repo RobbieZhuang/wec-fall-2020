@@ -5,21 +5,22 @@ from copy import deepcopy
 # we will try sending each robot on a "trip" which will be an out and back, cleaning along the way
 # at each point, we will choose to keep the trip that results in the best score
 
-def one_at_a_time_strat(trip_strat, game_state):
+def one_at_a_time_strat(trip_strats, game_state):
     # Repeatedly make trips until one results in a lower score
     while True:
         best_game_state = game_state
         for i in range(len(game_state.robots)):
-            new_game_state = trip_strat(i, deepcopy(game_state))
+            for trip_strat in trip_strats:
+                new_game_state = trip_strat(i, deepcopy(game_state))
 
-            if new_game_state.get_stranded() > 0:
-                print('Warning: robots stranded after trip completed')
-            
-            max_score = best_game_state.get_score(count_stranding=True)
-            new_score = new_game_state.get_score(count_stranding=True)
-    
-            if new_score > max_score:
-                best_game_state = new_game_state
+                if new_game_state.get_stranded() > 0:
+                    print('Warning: robots stranded after trip completed')
+                
+                max_score = best_game_state.get_score(count_stranding=True)
+                new_score = new_game_state.get_score(count_stranding=True)
+        
+                if new_score > max_score:
+                    best_game_state = new_game_state
 
         if best_game_state == game_state:
             break
