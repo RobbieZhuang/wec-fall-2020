@@ -45,7 +45,12 @@ class GameState:
 
         self.actions.append([self.robots[i].name, 'move', self.robots[i].position])
 
-    def 
+    def clean_tile(self, i, amount):
+        old = self.tiles[self.robots[i]]
+        new = max(0, old - amount)
+        self.tiles[self.robots[i]] = new
+
+        self.actions.append([self.robots[i].name, 'clean', new])
 
 def generate_solution(fluid, fuel, tiles, n_robots):
     g = GameState()
