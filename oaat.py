@@ -1,11 +1,12 @@
 from copy import deepcopy
 
-#one at a time
+# One at a time
 # only one robot will be away from base and active at a given point in time
 # we will try sending each robot on a "trip" which will be an out and back, cleaning along the way
 # at each point, we will choose to keep the trip that results in the best score
 
 def one_at_a_time_strat(trip_strat, game_state):
+    # Repeatedly make trips until one results in a lower score
     while True:
         best_game_state = game_state
         for i in range(len(game_state.robots)):
