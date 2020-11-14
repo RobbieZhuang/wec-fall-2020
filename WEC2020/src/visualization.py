@@ -19,7 +19,7 @@ def visualize_single_frame(sim):
     for i in range(sim.shape[0]):
         for j in range(sim.shape[1]):
             ax1.text(j + 0.5, i + 0.5, int(sim.contamination[i, j]),
-                     fontsize=15, ha='center', va='center', zorder=2)
+                     fontsize=8, ha='center', va='center', zorder=2)
 
     xmin = 0
     xmax = sim.shape[0]
@@ -99,7 +99,7 @@ def visualize_everything_video(prob, soln, output_dir, filename = 'cleaning_visu
         size = (width,height)
         img_array.append(img)
 
-    out = cv2.VideoWriter(f'{filename}.mp4', -1, float(fps), size)
+    out = cv2.VideoWriter(f'{filename}.mp4', 0x7634706d, float(fps), size)
     
     for i in range(len(img_array)):
         out.write(img_array[i])
