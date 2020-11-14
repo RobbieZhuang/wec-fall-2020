@@ -4,11 +4,7 @@ import numpy as np
 from copy import deepcopy
 
 from WEC2020.src.problem import load_problem
-
-UP = (-1, 0)
-DOWN = (1, 0)
-LEFT = (0, -1)
-RIGHT = (0, 1)
+from util import equal_space_base_stations
 
 class RobotState:
     def __init__(self, name, fluid, fuel, position):
@@ -26,6 +22,8 @@ class GameState:
         self.actions = []
         self.tiles = tiles
 
+        self.rows, self.cols = tiles.shape
+
         self.contamination = np.sum(tiles)
         self.fuel_spent = 0
 
@@ -38,9 +36,26 @@ class GameState:
         N_t = self.tiles.size
         return (20 * N_t - 0.5 * self.contamination - 2 * self.fuel_spent - 15 * len(self.robots)) / (20 * N_t)
 
+    def dist_from_base(self, i):
+        return sum([abs(self.robots[i].position[j] - self.base_stations[i][j]) for j in range(2)])
+    
+    def in_range_of_base(self, i):
+        return self.dist_from_base(i) <= self.robots[i].fuel
+
+    def in_board(self, i):
+        r, c = self.robots[i].position
+        return r >= 0 and r < self.rows and c >= 0 and c < self.cols
+
     def move_robot(self, i, d):
         r, c = self.robots[i].position
-        self.robots[i].position = (r + d[0], c + d[1])
+        new_pos = (r + d[0], c + d[1])
+
+        # avoid collision
+        for j, r in enumerate(self.robots):
+            if i != j and r.position == new_pos:
+                return False
+
+        self.robots[i].position = new_pos
         self.robots[i].fuel -= 1
         self.fuel_spent += 1
 
@@ -49,61 +64,89 @@ class GameState:
             self.robots[i].fuel = self.max_fuel
 
         self.actions.append([self.robots[i].name, 'move', self.robots[i].position])
+        return True
 
     def clean_tile(self, i, amount):
-        old = self.tiles[self.robots[i]]
+        amount = min(amount, self.robots[i].fluid)
+
+        old = self.tiles[self.robots[i].position]
         new = max(0, old - amount)
-        self.tiles[self.robots[i]] = new
+        self.tiles[self.robots[i].position] = new
+        self.robots[i].fluid -= (new - old)
+
+        self.contamination -= (new - old)
 
         self.actions.append([self.robots[i].name, 'clean', new - old])
 
-    def on_board(self, tile):
-        return tile[0] >= 0 and tile[1] >= 0 and \
-               tile[0] < len(self.contamination) and tile[1] < len(self.contamination[0])
+    def get_json(self):
+        return json.dumps({
+            'robots': [[
+                robot.name, self.base_stations[i]
+            ] for i, robot in enumerate(self.robots)],
+            'actions': self.actions
+        })
 
-def find_score_for
+    def print_state(self):
+        for r in range(-1, self.rows + 1):
+            for c in range(-1, self.cols + 1):
+                robot = False
+                for i, rob in enumerate(self.robots):
+                    if rob.position == (r, c):
+                        print(f'R{i}')
+                        robot = True
+                        break
+                if robot:
+                    break
+                if r >= 0 and r < self.rows and c >= 0 and c < self.cols:
+                    print('%02d' % self.tiles[r][c], end='')
+                elif (r,c) in self.base_stations:
+                    print('bb', end='')
+                else:
+                    print('  ', end='')
+                print(' ', end='')
+            print()
 
-def generate_solution(fluid, fuel, tiles, n_robots):
+def generate_solution(fluid, fuel, tiles, n_robots=5):
+    rows, cols = tiles.shape
     base_stations = equal_space_base_stations(tiles, n_robots)
 
-    g = GameState()
+    # remove duplicates
+    base_stations = list(set(base_stations))
+    if len(base_stations) < n_robots:
+        return -100, '{}'       # we are oversaturated
 
-    return json.dumps({})
+    g = GameState(fluid, fuel, tiles, base_stations)
+
+    print('Generated base stations:')
+    g.print_state()
+
+    return g.get_score(), g.get_json()
+
+def find_optimal_robots(fluid, fuel, tiles):
+    max_score = -1
+    max_json = '{}'
+
+    for i in range(1, 20):
+        score, json = generate_solution(fluid, fuel, tiles, i)
+        if score > max_score:
+            max_score = score
+            max_json = json
+
+    return max_score, max_json
 
 def cleaning_path(start, end, tiles):
     pass
 
-def equal_space_base_stations(tiles, n):
-    total_len = border_len(tiles)
-
-    placed = 0
-
-    for i, pos in enumerate(border_gen(tiles)):
-        if i / total_len >= placed / n:
-            placed += 1
-
-def border_len(tiles):
-    rows, cols = tiles.shape
-    return rows * 2 + cols * 2
-
-def border_gen(tiles):
-    rows, cols = tiles.shape
-    for i in range(cols):
-        yield (-1, i)
-    for i in range(rows):
-        yield (i, cols)
-    for i in range(cols):
-        yield (rows, cols - i - 1)
-    for i in range(rows):
-        yield (rows - i - 1, -1)
-
 if __name__=='__main__':
     problem = load_problem(sys.argv[1])
 
-    json = generate_solution(problem.max_fluid, problem.max_fuel, problem.floor)
+    score, json = find_optimal_robots(problem.max_fluid, problem.max_fuel, problem.floor)
+
+    print(f'Found a solution with score: {score}')
 
     if len(sys.argv) > 2:
         with open(sys.argv[2], 'w') as ofile:
             ofile.write(json)
+            ofile.write('\n')
     else:
         print(json)

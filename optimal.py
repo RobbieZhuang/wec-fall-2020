@@ -18,7 +18,7 @@ def find_good_endpoint(state, start_point, max_dist):
     for i in range(-max_dist, max_dist):
         for j in range(-max_dist, max_dist):
             new_point = [start_point[0]-i, start_point[1]-j]
-            if state.onboard(new_point) and abs(i) + abs(j) <= max_dist:
+            if state.in_board(new_point) and abs(i) + abs(j) <= max_dist:
                 if state.get_contam(new_point) > contamination:
                     contamination = state.get_contam(new_point)
                     best_point = new_point
