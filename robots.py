@@ -13,8 +13,9 @@ from optimal import optimal_trip
 import argparse
 
 strategies = {
-    'greedy': greedy_trip,
-    'optimal': optimal_trip
+    'greedy': [greedy_trip],
+    'optimal': [optimal_trip],
+    'both': [greedy_trip, optimal_trip]
 }
 
 class RobotState:
@@ -153,7 +154,7 @@ class GameState:
     def get_contam(self, coord):
         return self.tiles[coord[0]][coord[1]]
 
-def generate_solution(fluid, fuel, tiles, n_robots=5, trip_strategy=greedy_trip):
+def generate_solution(fluid, fuel, tiles, n_robots=5, trip_strategy=[greedy_trip, optimal_trip]):
     rows, cols = tiles.shape
     base_stations = equal_space_base_stations(tiles, n_robots)
 
@@ -168,7 +169,7 @@ def generate_solution(fluid, fuel, tiles, n_robots=5, trip_strategy=greedy_trip)
 
     return g.get_score(), g.get_json()
 
-def find_optimal_robots(fluid, fuel, tiles, trip_strategy=greedy_trip, min_robots=1, max_robots=20):
+def find_optimal_robots(fluid, fuel, tiles, trip_strategy=[greedy_trip, optimal_trip], min_robots=1, max_robots=20):
     max_score = -1
     max_json = '{}'
 
