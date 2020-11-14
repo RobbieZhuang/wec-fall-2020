@@ -17,8 +17,6 @@ def one_at_a_time_strat(trip_strat, game_state):
             max_score = best_game_state.get_score(count_stranding=True)
             new_score = new_game_state.get_score(count_stranding=True)
     
-            print(f'Current max score: {max_score} New score after trip: {new_score}')
-
             if new_score > max_score:
                 best_game_state = new_game_state
 

@@ -83,10 +83,6 @@ class GameState:
         self.robots[i].fuel -= 1
         self.fuel_spent += 1
 
-        if self.robots[i].position in self.base_stations:
-            self.robots[i].fluid = self.max_fluid
-            self.robots[i].fuel = self.max_fuel
-
         self.actions.append([self.robots[i].name, 'move', self.robots[i].position])
         return True
 
@@ -97,16 +93,25 @@ class GameState:
         return move_robot(self, i, d)
 
     def clean_tile(self, i, amount):
-        amount = min(amount, self.robots[i].fluid)
-
         old = self.tiles[self.robots[i].position]
-        new = max(0, old - amount)
-        self.tiles[self.robots[i].position] = new
-        self.robots[i].fluid -= (old - new)
+        amount = min(min(amount, self.robots[i].fluid), old)
 
-        self.contamination -= (old - new)
+        self.tiles[self.robots[i].position] = old - amount
+        self.robots[i].fluid -= amount
 
-        self.actions.append([self.robots[i].name, 'clean', old - new])
+        self.contamination -= amount
+
+        self.actions.append([self.robots[i].name, 'clean', amount])
+
+    def resupply(self, i):
+        if self.robots[i].position not in self.base_stations:
+            return False
+
+        self.robots[i].fluid = self.max_fluid
+        self.robots[i].fuel = self.max_fuel
+
+        self.actions.append([self.robots[i].name, 'resupply'])
+
 
     def get_json(self):
         return json.dumps({
@@ -149,11 +154,8 @@ def generate_solution(fluid, fuel, tiles, n_robots=5):
 
     g = GameState(fluid, fuel, tiles, base_stations)
 
-    print('Generated base stations:')
-    g.print_state()
-
-    # g = one_at_a_time_strat(greedy_trip, g)
-    optimal.run_actions_for_robot(0, g)
+    g = one_at_a_time_strat(greedy_trip, g)
+    #optimal.run_actions_for_robot(0, g)
 
     return g.get_score(), g.get_json()
 
@@ -163,6 +165,7 @@ def find_optimal_robots(fluid, fuel, tiles, min_robots=1, max_robots=20):
 
     for i in range(min_robots, max_robots + 1):
         score, json = generate_solution(fluid, fuel, tiles, i)
+        #print(f'Found {i} robot solution with score {score}')
         if score > max_score:
             max_score = score
             max_json = json
@@ -172,9 +175,9 @@ def find_optimal_robots(fluid, fuel, tiles, min_robots=1, max_robots=20):
 if __name__=='__main__':
     problem = load_problem(sys.argv[1])
 
-    score, json = find_optimal_robots(problem.max_fluid, problem.max_fuel, problem.floor, 1, 1)
+    score, json = find_optimal_robots(problem.max_fluid, problem.max_fuel, problem.floor, 1, 20)
 
-    print(f'Found a solution with score: {score}')
+    #print(f'Found a solution with score: {score}')
 
     if len(sys.argv) > 2:
         with open(sys.argv[2], 'w') as ofile:
