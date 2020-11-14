@@ -60,9 +60,9 @@ class GameState:
 
     def in_board(self, i):
         r, c = self.robots[i].position
-        return self.in_board(r, c)
+        return self.in_board_coord(r, c)
 
-    def in_board(self, r, c):
+    def in_board_coord(self, r, c):
         return r >= 0 and r < self.rows and c >= 0 and c < self.cols
 
     def move_robot(self, i, d):
@@ -100,11 +100,11 @@ class GameState:
         old = self.tiles[self.robots[i].position]
         new = max(0, old - amount)
         self.tiles[self.robots[i].position] = new
-        self.robots[i].fluid -= (new - old)
+        self.robots[i].fluid -= (old - new)
 
-        self.contamination -= (new - old)
+        self.contamination -= (old - new)
 
-        self.actions.append([self.robots[i].name, 'clean', new - old])
+        self.actions.append([self.robots[i].name, 'clean', old - new])
 
     def get_json(self):
         return json.dumps({

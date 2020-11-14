@@ -17,12 +17,9 @@ def greedy_trip(i, gs):
             if not g.move_robot(i, d):
                 continue
 
-            print('Tried move:')
-            g.print_state()
-
-            sleep(1)
-
             robot = g.robots[i]
+            print('Possible move:')
+            g.print_state()
 
             # only consider moves that are in range of base and which will allow us to clean more stuff
             # or are moving back towards base
@@ -33,14 +30,14 @@ def greedy_trip(i, gs):
                 priority = 0
                 if (robot.fluid == 0 or gs.contamination == 0) and g.dist_from_base(i) < gs.dist_from_base(i):
                     priority = 1000     # prioritize getting empty robots back to base
-                else:
-                    priority = min(robot.fluid, g.tiles[g.robots[i].position])
+                elif g.in_board(i):
+                    priority = min(robot.fluid, g.tiles[robot.position])
 
                 possible_moves.append((priority, g))
 
         if not possible_moves:
             break
-        possible_moves.sort(key=lambda a: a[0])
+        possible_moves.sort(key=lambda a: -a[0])
         print(possible_moves)
 
         # overwrite game state with best move
